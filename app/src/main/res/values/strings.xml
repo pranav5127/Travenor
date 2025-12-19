@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Travenor</string>
+    <string name="get_started">Get Started</string>
+    <string name="onboarding_sub_text">At Friends tours and travel, we customize reliable and trustworthy educational tours to destinations all over the world</string>
+    <string name="sign_in_now">Sign in now</string>
+    <string name="please_sign_in_to_continue_our_app">Please sign in to continue our app</string>
+    <string name="sign_in">Sign In</string>
 </resources>
