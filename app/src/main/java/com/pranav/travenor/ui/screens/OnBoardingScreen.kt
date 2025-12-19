@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,6 +27,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
@@ -39,6 +38,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pranav.travenor.R
+import com.pranav.travenor.ui.components.ThemedButton
 import com.pranav.travenor.ui.theme.GeometrFont
 import com.pranav.travenor.ui.theme.GillSansMtFont
 
@@ -112,10 +112,10 @@ fun OnBoardingScreen(modifier: Modifier = Modifier) {
                             val y = startBounds.bottom
 
                             val path = Path().apply {
-                                moveTo(x1 - 10f, y + 25f)
+                                moveTo(x1 - 10f, y + 28f)
                                 quadraticTo(
                                     (x1 + x2) / 2,
-                                    y + 5f,
+                                    y,
                                     x2 + 20f,
                                     y + 25f
                                 )
@@ -137,7 +137,7 @@ fun OnBoardingScreen(modifier: Modifier = Modifier) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
-                text = "At Friends tours and travel, we customize reliable and trustworthy educational tours to destinations all over the world",
+                text = stringResource(R.string.onboarding_sub_text),
                 fontFamily = GillSansMtFont,
                 fontWeight = FontWeight.W400,
                 fontSize = 16.sp,
@@ -148,24 +148,10 @@ fun OnBoardingScreen(modifier: Modifier = Modifier) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
-                onClick = { },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF0D6EFD)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text(
-                    text = "Get Started",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-            
+            ThemedButton(
+                text = stringResource(R.string.get_started),
+                onClick = {}
+            )
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
