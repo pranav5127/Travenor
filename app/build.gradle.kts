@@ -60,4 +60,7 @@ dependencies {
 
     // SplashScreen
     implementation(libs.androidx.core.splashscreen)
+
+    // Extended Icons
+    implementation(libs.androidx.compose.material.icons.extended.android)
 }
