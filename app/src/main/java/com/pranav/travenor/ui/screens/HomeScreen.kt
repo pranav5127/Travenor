@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.buildAnnotatedString
@@ -85,14 +86,14 @@ fun HeaderSection() {
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.user),
-                    contentDescription = "User",
+                    contentDescription = stringResource(R.string.user),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "User name",
+                text = stringResource(R.string.user_name),
                 fontFamily = GillSansMtFont,
                 fontWeight = FontWeight.Bold,
                 fontSize = 14.sp
@@ -112,7 +113,7 @@ fun TitleSection() {
 @Composable
 fun ExploreText() {
     Text(
-        text = "Explore the",
+        text = stringResource(R.string.explore_the),
         fontSize = 38.sp,
         fontWeight = FontWeight.W400,
         lineHeight = 44.sp,
@@ -184,7 +185,7 @@ fun BestDestinationSection() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Best Destination",
+                text = stringResource(R.string.best_destination),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )

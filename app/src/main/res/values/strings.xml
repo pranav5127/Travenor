@@ -5,4 +5,8 @@
     <string name="sign_in_now">Sign in now</string>
     <string name="please_sign_in_to_continue_our_app">Please sign in to continue our app</string>
     <string name="sign_in">Sign In</string>
+    <string name="user">User</string>
+    <string name="user_name">User name</string>
+    <string name="explore_the">Explore the</string>
+    <string name="best_destination">Best Destination</string>
 </resources>

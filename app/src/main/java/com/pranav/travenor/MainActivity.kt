@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
-import com.pranav.travenor.ui.screens.HomeScreen
+import com.pranav.travenor.ui.screens.DetailsScreen
 import com.pranav.travenor.ui.theme.TravenorTheme
 
 class MainActivity : ComponentActivity() {
@@ -15,7 +15,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TravenorTheme {
-                HomeScreen()
+                DetailsScreen()
             }
         }
     }
