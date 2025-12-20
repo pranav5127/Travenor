@@ -5,18 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,21 +13,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
@@ -52,18 +35,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pranav.travenor.R
 import com.pranav.travenor.ui.components.ThemedButton
+import androidx.compose.ui.geometry.Rect
 
 @Composable
 fun DetailsScreen(onBackClick: () -> Unit = {}) {
     Box(modifier = Modifier.fillMaxSize()) {
+
         Image(
             painter = painterResource(id = R.drawable.home),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(420.dp),
+                .height(480.dp),
             contentScale = ContentScale.Crop
         )
+
         DetailsTopBar(onBackClick)
         BottomDetailsSheet()
     }
@@ -109,32 +95,72 @@ fun BottomDetailsSheet() {
 
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .offset(y = offset)
-            .background(
-                Color.White,
-                RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
-            )
-    ) {
+            .drawWithContent {
+                val arcHeight = 10.dp.toPx()
+                val cornerRadius = 26.dp.toPx()
+                val flatWidth = size.width * 0.055f
 
+                val path = Path().apply {
+                    moveTo(0f, arcHeight + cornerRadius)
+
+                    arcTo(
+                        rect = Rect(
+                            left = 0f,
+                            top = arcHeight,
+                            right = cornerRadius * 2,
+                            bottom = arcHeight + cornerRadius * 2
+                        ),
+                        startAngleDegrees = 180f,
+                        sweepAngleDegrees = 90f,
+                        forceMoveTo = false
+                    )
+
+                    lineTo(flatWidth, arcHeight)
+
+                    cubicTo(
+                        flatWidth + size.width * 0.1f, -arcHeight,
+                        size.width - flatWidth - size.width * 0.1f, -arcHeight,
+                        size.width - flatWidth, arcHeight
+                    )
+
+                    lineTo(size.width - cornerRadius, arcHeight)
+
+                    arcTo(
+                        rect = Rect(
+                            left = size.width - cornerRadius * 2,
+                            top = arcHeight,
+                            right = size.width,
+                            bottom = arcHeight + cornerRadius * 2
+                        ),
+                        startAngleDegrees = 270f,
+                        sweepAngleDegrees = 90f,
+                        forceMoveTo = false
+                    )
+
+                    lineTo(size.width, size.height)
+                    lineTo(0f, size.height)
+                    close()
+                }
+
+                drawPath(path, Color.White)
+                drawContent()
+            }
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color.Transparent)
                 .pointerInput(Unit) {
                     detectVerticalDragGestures { _, dragAmount ->
-                        if (dragAmount < -10) {
-                            // Dragged UP
-                            expanded = true
-                        } else if (dragAmount > 10) {
-                            // Dragged DOWN
-                            expanded = false
-                        }
+                        if (dragAmount < -10) expanded = true
+                        else if (dragAmount > 10) expanded = false
                     }
                 }
                 .padding(horizontal = 24.dp)
                 .padding(top = 16.dp, bottom = 120.dp)
         ) {
-
             Box(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -158,10 +184,7 @@ fun BottomDetailsSheet() {
 
             Spacer(modifier = Modifier.height(48.dp))
 
-            ThemedButton(
-                text = "Book Now",
-                onClick = {}
-            )
+            ThemedButton(text = "Book Now", onClick = {})
         }
     }
 }
@@ -178,7 +201,7 @@ fun DestinationHeader() {
             Text("Kolkata, India", color = Color.Gray)
         }
         Image(
-            painter = painterResource(id = R.drawable.user),
+            painter = painterResource(id = R.drawable.profile),
             contentDescription = null,
             modifier = Modifier
                 .size(48.dp)
@@ -186,8 +209,6 @@ fun DestinationHeader() {
             contentScale = ContentScale.Crop
         )
     }
-
-
 }
 
 @Composable
@@ -225,25 +246,57 @@ fun DestinationStats() {
 
 @Composable
 fun GallerySection() {
-    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        items(5) {
-            Image(
-                painter = painterResource(id = R.drawable.home),
-                contentDescription = null,
+
+    val images = listOf(
+        R.drawable.img_1,
+        R.drawable.img_2,
+        R.drawable.img_3,
+        R.drawable.img_4,
+        R.drawable.img_5
+    )
+
+    LazyRow(
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        contentPadding = PaddingValues(horizontal = 2.dp)
+    ) {
+        items(images.size) { index ->
+            Box(
                 modifier = Modifier
                     .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
+                    .clip(RoundedCornerShape(12.dp))
+            ) {
+
+                Image(
+                    painter = painterResource(id = images[index]),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+
+                if (index == images.lastIndex) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.55f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "16+",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
+
+
 @Composable
-fun AboutDestination(
-    isExpanded: Boolean,
-    onToggle: () -> Unit
-) {
+fun AboutDestination(isExpanded: Boolean, onToggle: () -> Unit) {
     Column {
         Text("About Destination", fontSize = 20.sp, fontWeight = FontWeight.Bold)
         Spacer(modifier = Modifier.height(8.dp))
