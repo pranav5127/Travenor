@@ -38,8 +38,8 @@ import com.pranav.travenor.ui.components.ThemedButton
 import androidx.compose.ui.geometry.Rect
 
 @Composable
-fun DetailsScreen(onBackClick: () -> Unit = {}) {
-    Box(modifier = Modifier.fillMaxSize()) {
+fun DetailsScreen(modifier: Modifier = Modifier, onBackClick: () -> Unit = {}) {
+    Box(modifier = modifier.fillMaxSize()) {
 
         Image(
             painter = painterResource(id = R.drawable.home),

@@ -2,6 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -29,12 +31,8 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
+    kotlin {
+       jvmToolchain(11)
     }
     buildFeatures {
         compose = true
@@ -59,9 +57,35 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
 
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
     // SplashScreen
     implementation(libs.androidx.core.splashscreen)
 
     // Extended Icons
     implementation(libs.androidx.compose.material.icons.extended.android)
+
+    // On boarding
+    implementation(libs.foundation.pager)
+
+    // Navigation3 dependencies
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.android.navigation3.runtime)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+
+    // Serialization dependency
+    implementation(libs.kotlinx.serialization.json)
+
+    // Koin dependency
+    implementation(libs.koin.android)
+    implementation(libs.koin.core)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.coroutines)
+    implementation(libs.koin.compose.viewmodel)
+    implementation(libs.koin.annotation)
+    ksp(libs.koin.ksp.compiler)
+
+    testImplementation(libs.koin.test)
+    testImplementation(libs.koin.android.test)
+    testImplementation(libs.mockito)
 }
