@@ -14,7 +14,7 @@ class AuthRepositoryImpl(
         dataSource.verifyOtp(email, otp)
     }
 
-    override fun isLoggedIn(): Boolean {
+    override suspend fun isLoggedIn(): Boolean {
         return dataSource.isLoggedIn()
     }
 

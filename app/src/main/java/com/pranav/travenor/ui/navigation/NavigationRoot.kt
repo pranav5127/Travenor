@@ -8,42 +8,29 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.edit
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavEntry
-import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import androidx.core.content.edit
 import com.pranav.travenor.ui.screens.*
 import com.pranav.travenor.ui.viewmodel.AuthViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
 @Composable
-fun NavigationRoot(modifier: Modifier = Modifier) {
-
+fun NavigationRoot(
+    backStack: NavBackStack<NavKey>,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val authViewModel: AuthViewModel = koinViewModel()
 
-    val sharedPreferences = remember {
+    val prefs = remember {
         context.getSharedPreferences("travenor_prefs", Context.MODE_PRIVATE)
     }
-
-    val isFirstLaunch = remember {
-        sharedPreferences.getBoolean("is_first_launch", true)
-    }
-
-    val isLoggedIn = remember {
-        authViewModel.checkLogin()
-    }
-
-    val initialRoute = when {
-        isFirstLaunch -> Routes.OnBoardingScreen
-        isLoggedIn -> Routes.HomeScreen
-        else -> Routes.SignInScreen
-    }
-
-    val backStack = rememberNavBackStack(initialRoute)
 
     Scaffold(modifier = modifier) { innerPadding ->
 
@@ -53,17 +40,17 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator()
             ),
-            entryProvider = { key ->
+            entryProvider = { route ->
 
-                when (key) {
+                when (route) {
 
-                    is Routes.HomeScreen -> NavEntry(key) {
+                    is Routes.HomeScreen -> NavEntry(route) {
                         HomeScreen(
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
 
-                    is Routes.SignInScreen -> NavEntry(key) {
+                    is Routes.SignInScreen -> NavEntry(route) {
                         SignInScreen(
                             modifier = Modifier.padding(innerPadding),
                             onSignInClick = { email ->
@@ -73,15 +60,16 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                         )
                     }
 
-                    is Routes.OtpScreen -> NavEntry(key) {
+                    is Routes.OtpScreen -> NavEntry(route) {
                         OtpScreen(
-                            email = key.email,
+                            email = route.email,
+                            uiState = authViewModel.uiState,
                             modifier = Modifier.padding(innerPadding),
                             onBackClick = {
                                 backStack.removeLast()
                             },
                             onVerifyClick = { otp ->
-                                authViewModel.verifyEmailOtp(key.email, otp)
+                                authViewModel.verifyEmailOtp(route.email, otp)
                             },
                             onAuthenticated = {
                                 backStack.clear()
@@ -90,11 +78,11 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                         )
                     }
 
-                    is Routes.OnBoardingScreen -> NavEntry(key) {
+                    is Routes.OnBoardingScreen -> NavEntry(route) {
                         OnBoardingScreen(
                             modifier = Modifier.padding(innerPadding),
                             onGetStartedClick = {
-                                sharedPreferences.edit {
+                                prefs.edit {
                                     putBoolean("is_first_launch", false)
                                 }
                                 backStack.clear()
@@ -103,13 +91,13 @@ fun NavigationRoot(modifier: Modifier = Modifier) {
                         )
                     }
 
-                    is Routes.DetailsScreen -> NavEntry(key) {
+                    is Routes.DetailsScreen -> NavEntry(route) {
                         DetailsScreen(
                             modifier = Modifier.padding(innerPadding)
                         )
                     }
 
-                    else -> error("Unknown route")
+                    else -> error("Unknown route: $route")
                 }
             }
         )

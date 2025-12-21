@@ -24,6 +24,7 @@ val appModule = module {
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY,
         ) {
             install(Auth)
+
         }
     }
 

@@ -23,9 +23,11 @@ class SupabaseAuthDataSource(
         )
     }
 
-    fun isLoggedIn(): Boolean {
-        return supabase.auth.currentUserOrNull() != null
+    suspend fun isLoggedIn(): Boolean {
+        supabase.auth.awaitInitialization()
+        return supabase.auth.currentSessionOrNull() != null
     }
+
 
     suspend fun logout() {
         supabase.auth.signOut()
