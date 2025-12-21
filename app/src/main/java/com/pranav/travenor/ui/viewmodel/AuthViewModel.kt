@@ -31,9 +31,7 @@ class AuthViewModel(
 
     private fun restoreAuthState() {
         viewModelScope.launch {
-            Log.d(TAG, "Restoring auth state...")
             val loggedIn = isLoggedIn()
-            Log.d(TAG, "Auth restored: loggedIn=$loggedIn")
 
             uiState =
                 if (loggedIn) {
