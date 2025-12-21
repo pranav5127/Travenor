@@ -1,17 +1,22 @@
 package com.pranav.travenor.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -45,50 +50,23 @@ fun OtpInputTextFields(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+            .padding(horizontal = 12.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         otpValues.forEachIndexed { index, value ->
-            OutlinedTextField(
-                modifier = Modifier
-                    .weight(1f)
-                    .aspectRatio(1f)
-                    .padding(6.dp)
-                    .focusRequester(focusRequesters[index])
-                    .onKeyEvent { keyEvent ->
-                        if (keyEvent.key == Key.Backspace) {
-                            if (otpValues[index].isEmpty() && index > 0) {
-                                // Go to previous box if current is already empty
-                                onUpdateOtpValuesByIndex(index, "")
-                                focusRequesters[index - 1].requestFocus()
-                            } else {
-                                // Just clear current box
-                                onUpdateOtpValuesByIndex(index, "")
-                            }
-                            true
-                        } else {
-                            false
-                        }
-                    },
+
+            BasicTextField(
                 value = value,
                 onValueChange = { newValue ->
-                    //  user pasted the whole OTP
                     if (newValue.length == otpLength) {
-                        for (i in otpValues.indices) {
-                            onUpdateOtpValuesByIndex(
-                                i,
-                                if (i < newValue.length && newValue[i].isDigit())
-                                    newValue[i].toString()
-                                else
-                                    ""
-                            )
+                        newValue.forEachIndexed { i, c ->
+                            if (i < otpLength && c.isDigit()) {
+                                onUpdateOtpValuesByIndex(i, c.toString())
+                            }
                         }
-
                         keyboardController?.hide()
                         onOtpInputComplete()
-                    }
-                    // normal single-character typing
-                    else if (newValue.length <= 1) {
+                    } else if (newValue.length <= 1) {
                         onUpdateOtpValuesByIndex(index, newValue)
                         if (newValue.isNotEmpty()) {
                             if (index < otpLength - 1) {
@@ -100,62 +78,63 @@ fun OtpInputTextFields(
                             }
                         }
                     }
-                    // user somehow typed more than 1 char in a box
-                    else {
-                        if (index < otpLength - 1) {
-                            focusRequesters[index + 1].requestFocus()
-                        }
-                    }
                 },
+                modifier = Modifier
+                    .width(56.dp)
+                    .height(72.dp)
+                    .padding(8.dp)
+                    .focusRequester(focusRequesters[index])
+                    .onKeyEvent { event ->
+                        if (event.key == Key.Backspace) {
+                            if (value.isEmpty() && index > 0) {
+                                onUpdateOtpValuesByIndex(index - 1, "")
+                                focusRequesters[index - 1].requestFocus()
+                            } else {
+                                onUpdateOtpValuesByIndex(index, "")
+                            }
+                            true
+                        } else false
+                    }
+                    .background(
+                        color = Color(0xFFF7F7F9),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .border(
+                        width = if (isError) 1.dp else 0.dp,
+                        color = if (isError) Color.Red else Color.Transparent,
+                        shape = RoundedCornerShape(16.dp)
+                    ),
+                singleLine = true,
+                textStyle = TextStyle(
+                    fontSize = 26.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center,
+                    color = Color.Black,
+                    lineHeight = 30.sp // ✅ critical
+                ),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Number,
                     imeAction = if (index == otpLength - 1) ImeAction.Done else ImeAction.Next
                 ),
                 keyboardActions = KeyboardActions(
-                    onNext = {
-                        if (index < otpLength - 1) {
-                            focusRequesters[index + 1].requestFocus()
-                        }
-                    },
                     onDone = {
                         keyboardController?.hide()
                         focusManager.clearFocus()
                         onOtpInputComplete()
                     }
                 ),
-                shape = RoundedCornerShape(16.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFF7F7F9),
-                    unfocusedContainerColor = Color(0xFFF7F7F9),
-                    disabledContainerColor = Color(0xFFF7F7F9),
-                    errorContainerColor = Color(0xFFF7F7F9),
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    disabledBorderColor = Color.Transparent,
-                    errorBorderColor = Color.Transparent,
-                    cursorColor = Color.Black
-                ),
-                isError = isError,
-                textStyle = TextStyle(
-                    textAlign = TextAlign.Center,
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.Black
-                ),
-                singleLine = true
-            )
-
-            // When all boxes are filled, trigger completion
-            LaunchedEffect(value) {
-                if (otpValues.all { it.isNotEmpty() }) {
-                     focusManager.clearFocus()
-                     onOtpInputComplete()
+                decorationBox = { innerTextField ->
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        innerTextField()
+                    }
                 }
-            }
+            )
         }
     }
 
-    // Focus first box on start
     LaunchedEffect(Unit) {
         if (otpLength > 0) {
             focusRequesters.first().requestFocus()
