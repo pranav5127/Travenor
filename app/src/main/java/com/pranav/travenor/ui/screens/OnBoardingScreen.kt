@@ -43,7 +43,7 @@ import com.pranav.travenor.ui.theme.GeometrFont
 import com.pranav.travenor.ui.theme.GillSansMtFont
 
 @Composable
-fun OnBoardingScreen(modifier: Modifier = Modifier) {
+fun OnBoardingScreen(modifier: Modifier = Modifier, onGetStartedClick: () -> Unit = {}) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -69,7 +69,7 @@ fun OnBoardingScreen(modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .padding(top = 48.dp, end = 24.dp)
-                    .clickable { }
+                    .clickable { onGetStartedClick() }
             )
         }
 
@@ -150,7 +150,7 @@ fun OnBoardingScreen(modifier: Modifier = Modifier) {
 
             ThemedButton(
                 text = stringResource(R.string.get_started),
-                onClick = {}
+                onClick = onGetStartedClick
             )
             Spacer(modifier = Modifier.height(24.dp))
         }

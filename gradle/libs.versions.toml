@@ -14,6 +14,10 @@ runtimeSaveable = "1.10.0"
 pagerVersion = "1.7.2"
 lifecycleViewmodelKtx = "2.10.0"
 
+# Supabase
+bom = "3.1.1"
+ktor = "3.0.3"
+
 # Naviagation
 navigation3 = "1.0.0"
 lifecycleViewmodelNav3 = "2.10.0"
@@ -68,9 +72,9 @@ koin-android-test = { module = "io.insert-koin:koin-android-test", version.ref =
 koin-test = { module = "io.insert-koin:koin-test-junit4", version.ref = "koin" }
 mockito = {module = "org.mockito:mockito-inline", version.ref = "mockito"}
 
-# Coroutines
-kotlin-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
-
+auth-kt = { module = "io.github.jan-tennert.supabase:auth-kt" }
+supabase-bom = { module = "io.github.jan-tennert.supabase:bom", version.ref = "bom" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 
 
 [plugins]

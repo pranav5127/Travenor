@@ -1,45 +1,43 @@
 package com.pranav.travenor.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.pranav.travenor.ui.components.OtpInputTextFields
 import com.pranav.travenor.ui.components.ThemedButton
+import com.pranav.travenor.ui.model.AuthUiState
+import com.pranav.travenor.ui.viewmodel.AuthViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun OtpScreen(
+    email: String,
     modifier: Modifier = Modifier,
-    onBackClick: () -> Unit = {},
-    onVerifyClick: () -> Unit = {}
+    onBackClick: () -> Unit,
+    onVerifyClick: (String) -> Unit,
+    onAuthenticated: () -> Unit
 ) {
-    var otpValues by remember { mutableStateOf(List(4) { "" }) }
+    val viewModel: AuthViewModel = koinViewModel()
+    val state = viewModel.uiState
+
+    var otpValues by remember { mutableStateOf(List(6) { "" }) }
+
+    LaunchedEffect(state) {
+        if (state is AuthUiState.Authenticated) {
+            onAuthenticated()
+        }
+    }
 
     Column(
         modifier = modifier
@@ -48,90 +46,56 @@ fun OtpScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Back Button Row
-        Box(
-            modifier = Modifier.fillMaxWidth()
+
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier
+                .align(Alignment.Start)
+                .clip(CircleShape)
+                .background(Color(0xFFF7F7F9))
         ) {
-             IconButton(
-                onClick = onBackClick,
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .clip(CircleShape)
-                    .background(Color(0xFFF7F7F9))
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black
-                )
-            }
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
         }
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(40.dp))
+
+        Text("OTP Verification", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+
+        Spacer(Modifier.height(12.dp))
 
         Text(
-            text = "OTP Verification",
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            text = "Enter the code sent to $email",
+            color = Color.Gray,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Please check your email www.uihut@gmail.com to see the verification code",
-            fontSize = 16.sp,
-            color = Color.Gray,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
-
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(40.dp))
 
         OtpInputTextFields(
-            otpLength = 4,
+            otpLength = 6,
             otpValues = otpValues,
-            onUpdateOtpValuesByIndex = { index, value ->
-                otpValues = otpValues.toMutableList().apply {
-                    this[index] = value
-                }
+            onUpdateOtpValuesByIndex = { i, v ->
+                otpValues = otpValues.toMutableList().apply { this[i] = v }
             },
-            onOtpInputComplete = {
-            }
+            onOtpInputComplete =  {
+                onVerifyClick(otpValues.joinToString(""))
+            },
+            modifier = Modifier,
         )
 
-        Spacer(modifier = Modifier.height(40.dp))
+        Spacer(Modifier.height(40.dp))
+
+        when (state) {
+            AuthUiState.Loading -> CircularProgressIndicator()
+            is AuthUiState.Error -> Text(state.message, color = Color.Red)
+            else -> Unit
+        }
 
         ThemedButton(
             text = "Verify",
-            onClick = onVerifyClick
+            onClick = {
+                onVerifyClick(otpValues.joinToString(""))
+            }
         )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Resend code to",
-                color = Color.Gray,
-                fontSize = 14.sp
-            )
-
-            Text(
-                text = "01:26",
-                color = Color.Gray,
-                fontSize = 14.sp
-            )
-        }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun OtpScreenPreview() {
-    OtpScreen()
 }
