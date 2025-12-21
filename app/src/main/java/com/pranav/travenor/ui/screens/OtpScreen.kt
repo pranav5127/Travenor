@@ -7,7 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -17,24 +18,20 @@ import androidx.compose.ui.unit.sp
 import com.pranav.travenor.ui.components.OtpInputTextFields
 import com.pranav.travenor.ui.components.ThemedButton
 import com.pranav.travenor.ui.model.AuthUiState
-import com.pranav.travenor.ui.viewmodel.AuthViewModel
-import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun OtpScreen(
     email: String,
+    uiState: AuthUiState,
     modifier: Modifier = Modifier,
     onBackClick: () -> Unit,
     onVerifyClick: (String) -> Unit,
     onAuthenticated: () -> Unit
 ) {
-    val viewModel: AuthViewModel = koinViewModel()
-    val state = viewModel.uiState
-
     var otpValues by remember { mutableStateOf(List(6) { "" }) }
 
-    LaunchedEffect(state) {
-        if (state is AuthUiState.Authenticated) {
+    LaunchedEffect(uiState) {
+        if (uiState is AuthUiState.Authenticated) {
             onAuthenticated()
         }
     }
@@ -54,12 +51,16 @@ fun OtpScreen(
                 .clip(CircleShape)
                 .background(Color(0xFFF7F7F9))
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
         }
 
         Spacer(Modifier.height(40.dp))
 
-        Text("OTP Verification", fontSize = 26.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = "OTP Verification",
+            fontSize = 26.sp,
+            fontWeight = FontWeight.Bold
+        )
 
         Spacer(Modifier.height(12.dp))
 
@@ -74,22 +75,26 @@ fun OtpScreen(
         OtpInputTextFields(
             otpLength = 6,
             otpValues = otpValues,
-            onUpdateOtpValuesByIndex = { i, v ->
-                otpValues = otpValues.toMutableList().apply { this[i] = v }
+            onUpdateOtpValuesByIndex = { index, value ->
+                otpValues = otpValues.toMutableList().apply { this[index] = value }
             },
-            onOtpInputComplete =  {
+            onOtpInputComplete = {
                 onVerifyClick(otpValues.joinToString(""))
-            },
-            modifier = Modifier,
+            }
         )
 
         Spacer(Modifier.height(40.dp))
 
-        when (state) {
+        when (uiState) {
             AuthUiState.Loading -> CircularProgressIndicator()
-            is AuthUiState.Error -> Text(state.message, color = Color.Red)
+            is AuthUiState.Error -> Text(
+                text = uiState.message,
+                color = Color.Red
+            )
             else -> Unit
         }
+
+        Spacer(Modifier.height(24.dp))
 
         ThemedButton(
             text = "Verify",
