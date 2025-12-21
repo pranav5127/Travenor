@@ -53,7 +53,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFFF7F7F9))
-            .padding(top = 16.dp)
+            .padding(top = 36.dp)
     ) {
         HeaderSection()
         Spacer(modifier = Modifier.height(24.dp))
