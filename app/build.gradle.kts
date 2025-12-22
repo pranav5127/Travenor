@@ -107,10 +107,23 @@ dependencies {
     testImplementation(libs.koin.android.test)
     testImplementation(libs.mockito)
 
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
     // supabase
     implementation(platform(libs.supabase.bom))
     implementation(libs.auth.kt)
     implementation(libs.ktor.client.okhttp)
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:realtime-kt")
+
+    // Coil
+    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-network-okhttp:3.3.0")
+
+
+
+
 
 }
