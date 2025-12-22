@@ -53,6 +53,7 @@ fun DestinationCard(
         modifier = Modifier
             .width(260.dp)
             .height(380.dp)
+            .clickable(onClick = onClick)
     ) {
         Column(
             modifier = Modifier.padding(12.dp)

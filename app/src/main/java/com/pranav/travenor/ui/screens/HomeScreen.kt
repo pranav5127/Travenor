@@ -35,12 +35,13 @@ import com.pranav.travenor.ui.model.UiDestination
 import com.pranav.travenor.ui.theme.GillSansMtFont
 import com.pranav.travenor.ui.viewmodel.HomeScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import java.util.UUID
 
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    onDestinationClick: () -> Unit = {}
+    onDestinationClick: (UUID) -> Unit = {}
 ) {
 
     val viewModel: HomeScreenViewModel = koinViewModel()
@@ -77,7 +78,7 @@ fun HomeScreen(
             }
 
             DbUiState.Idle -> {
-                BestDestinationSection(destinations, onClick = onDestinationClick)
+                BestDestinationSection(destinations, onCardClick = onDestinationClick)
             }
         }
     }
@@ -200,7 +201,7 @@ fun BeautifulWorldText() {
 @Composable
 fun BestDestinationSection(
     destinations: List<UiDestination>,
-    onClick: () -> Unit
+    onCardClick: (id: UUID) -> Unit
 ) {
     Column {
         Row(
@@ -224,7 +225,12 @@ fun BestDestinationSection(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(destinations) { destination ->
-                DestinationCard(destination, onClick = onClick)
+                DestinationCard(
+                    destination,
+                    onClick = {
+                        onCardClick(destination.id)
+                    }
+                )
             }
         }
     }

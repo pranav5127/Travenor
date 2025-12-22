@@ -7,6 +7,7 @@ interface DbRepository {
 
     fun observeDestinations(): Flow<List<Destination>>
 
+    fun observeDestinationDetails(id: String): Flow<Destination?>
     suspend fun bookDestinations(id: String)
 
 }

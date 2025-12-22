@@ -14,6 +14,10 @@ class DbRepositoryImpl(
         return dataSource.observeDestinations()
     }
 
+    override fun observeDestinationDetails(id: String): Flow<Destination?> {
+       return dataSource.observeDestinationDetails(id)
+    }
+
     override suspend fun bookDestinations(id: String) {
         TODO("Not yet implemented")
     }

@@ -21,5 +21,7 @@ sealed interface Routes : NavKey {
     data object HomeScreen : Routes
 
     @Serializable
-    data object DetailsScreen : Routes
+    data class DetailsScreen(
+        val destinationId: String
+    ) : Routes
 }

@@ -26,7 +26,6 @@ class HomeScreenViewModel(
 
     init{
        subscribeToDestinations()
-
     }
 
     private fun subscribeToDestinations() {
