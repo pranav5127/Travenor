@@ -17,6 +17,7 @@ import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import com.pranav.travenor.ui.screens.*
 import com.pranav.travenor.ui.viewmodel.AuthViewModel
+import com.pranav.travenor.ui.viewmodel.HomeScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
@@ -27,7 +28,6 @@ fun NavigationRoot(
 ) {
     val context = LocalContext.current
     val authViewModel: AuthViewModel = koinViewModel()
-
     val prefs = remember {
         context.getSharedPreferences("travenor_prefs", Context.MODE_PRIVATE)
     }
@@ -46,7 +46,7 @@ fun NavigationRoot(
 
                     is Routes.HomeScreen -> NavEntry(route) {
                         HomeScreen(
-                            modifier = Modifier.padding(innerPadding)
+                            modifier = Modifier.padding(innerPadding),
                         )
                     }
 

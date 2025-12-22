@@ -1,6 +1,6 @@
 package com.pranav.travenor.ui.components
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,15 +32,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pranav.travenor.ui.screens.Destination
+import coil3.compose.AsyncImage
+import com.pranav.travenor.ui.model.UiDestination
 import com.pranav.travenor.ui.theme.GillSansMtFont
 
 @Composable
-fun DestinationCard(destination: Destination) {
+fun DestinationCard(
+    destination: UiDestination,
+    onClick: () -> Unit
+) {
+
+    Log.d("DestinationCard", "Image URL: ${destination.imageUrl}")
+
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -57,11 +63,25 @@ fun DestinationCard(destination: Destination) {
                     .weight(1f)
                     .clip(RoundedCornerShape(20.dp))
             ) {
-                Image(
-                    painter = painterResource(id = destination.imageRes),
+
+                AsyncImage(
+                    model = destination.imageUrl,
                     contentDescription = "Destination",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    onLoading = {
+                        Log.d("DestinationCard", "Image loading started")
+                    },
+                    onSuccess = {
+                        Log.d("DestinationCard", "Image loaded successfully")
+                    },
+                    onError = { error ->
+                        Log.e(
+                            "DestinationCard",
+                            "Image load FAILED",
+                            error.result.throwable
+                        )
+                    }
                 )
 
                 Box(
@@ -76,7 +96,9 @@ fun DestinationCard(destination: Destination) {
                         imageVector = Icons.Default.BookmarkBorder,
                         contentDescription = "Bookmark",
                         tint = Color.White,
-                        modifier = Modifier.size(20.dp).clickable(onClick = {})
+                        modifier = Modifier
+                            .size(20.dp)
+                            .clickable(onClick = {})
                     )
                 }
             }
@@ -102,10 +124,10 @@ fun DestinationCard(destination: Destination) {
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
+
                     Text(
-                        text = destination.rating,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold
+                        text = destination.rating.toString(),
+                        fontSize = 14.sp
                     )
                 }
             }
@@ -126,7 +148,7 @@ fun DestinationCard(destination: Destination) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = destination.location,
+                        text = destination.city,
                         fontFamily = GillSansMtFont,
                         fontSize = 14.sp,
                         color = Color.Gray
@@ -139,7 +161,6 @@ fun DestinationCard(destination: Destination) {
                 ) {
                     val avatarSize = 24.dp
 
-                    // Mock avatars
                     Box(
                         modifier = Modifier
                             .size(avatarSize)

@@ -11,7 +11,14 @@ import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.createSupabaseClient
 import org.koin.dsl.module
 import com.pranav.travenor.BuildConfig
+import com.pranav.travenor.data.datasources.SupabaseDbDataSource
+import com.pranav.travenor.data.repository.DbRepositoryImpl
+import com.pranav.travenor.domain.repository.DbRepository
+import com.pranav.travenor.domain.usecase.ObserveDestinationsUseCase
 import com.pranav.travenor.ui.viewmodel.AuthViewModel
+import com.pranav.travenor.ui.viewmodel.HomeScreenViewModel
+import io.github.jan.supabase.postgrest.Postgrest
+import io.github.jan.supabase.realtime.Realtime
 import org.koin.core.module.dsl.viewModel
 
 
@@ -24,23 +31,28 @@ val appModule = module {
             supabaseKey = BuildConfig.SUPABASE_ANON_KEY,
         ) {
             install(Auth)
-
+            install(Postgrest)
+            install(Realtime)
         }
     }
 
     // Data source
     single { SupabaseAuthDataSource(get()) }
+    single { SupabaseDbDataSource(get()) }
+
 
     // Repository
     single<AuthRepository> { AuthRepositoryImpl(get()) }
+    single<DbRepository> { DbRepositoryImpl(get()) }
 
     // Use cases
     factory { SendOtpUseCase(get()) }
     factory { VerifyOtpUseCase(get()) }
     factory { IsLoggedInUseCase(get()) }
     factory { LogoutUseCase(get()) }
+    factory { ObserveDestinationsUseCase(get()) }
 
-   // View model
-   viewModel { AuthViewModel(get(), get(), get(), get()) }
-
+    // View model
+    viewModel { AuthViewModel(get(), get(), get(), get()) }
+    viewModel { HomeScreenViewModel(get()) }
 }
