@@ -1,7 +1,7 @@
 package com.pranav.travenor.data.model
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class Destination(
@@ -20,8 +20,16 @@ data class Destination(
     @SerialName("image_url")
     val imageUrl: String? = null,
 
+    @SerialName("gallery_images")
+    val galleryImages: List<String>? = null,
+
     val rating: Double,
 
+    @SerialName("review_count")
+    val reviewCount: Int = 0,
+
     @SerialName("cost_per_person")
-    val costPerPerson: Int? = null
+    val costPerPerson: Int? = null,
+
+    val about: String? = null
 )

@@ -5,7 +5,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
@@ -15,9 +16,12 @@ import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.pranav.travenor.ui.screens.*
+import com.pranav.travenor.ui.screens.DetailsScreen
+import com.pranav.travenor.ui.screens.HomeScreen
+import com.pranav.travenor.ui.screens.OnBoardingScreen
+import com.pranav.travenor.ui.screens.OtpScreen
+import com.pranav.travenor.ui.screens.SignInScreen
 import com.pranav.travenor.ui.viewmodel.AuthViewModel
-import com.pranav.travenor.ui.viewmodel.HomeScreenViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
@@ -47,6 +51,9 @@ fun NavigationRoot(
                     is Routes.HomeScreen -> NavEntry(route) {
                         HomeScreen(
                             modifier = Modifier.padding(innerPadding),
+                            onDestinationClick = {
+                                backStack.add(Routes.DetailsScreen(it.toString()))
+                            }
                         )
                     }
 
@@ -74,6 +81,9 @@ fun NavigationRoot(
                             onAuthenticated = {
                                 backStack.clear()
                                 backStack.add(Routes.HomeScreen)
+                            },
+                            onResendClick = {
+                                authViewModel.sendEmailOtp(route.email)
                             }
                         )
                     }
@@ -93,7 +103,11 @@ fun NavigationRoot(
 
                     is Routes.DetailsScreen -> NavEntry(route) {
                         DetailsScreen(
-                            modifier = Modifier.padding(innerPadding)
+                            modifier = Modifier.padding(innerPadding),
+                            onBackClick = {
+                                backStack.removeLast()
+                            },
+                            destinationId = route.destinationId
                         )
                     }
 

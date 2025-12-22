@@ -8,6 +8,7 @@ import io.github.jan.supabase.postgrest.query.filter.FilterOperation
 import io.github.jan.supabase.postgrest.query.filter.FilterOperator
 import io.github.jan.supabase.realtime.selectAsFlow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import java.util.UUID
 
 class SupabaseDbDataSource(
@@ -19,11 +20,25 @@ class SupabaseDbDataSource(
     fun observeDestinations(): Flow<List<Destination>> {
         return supabase
             .from("locations")
-            .selectAsFlow(Destination::id, filter = FilterOperation(column = "is_active", operator = FilterOperator.EQ, value = true))
+            .selectAsFlow(
+                Destination::id,
+                filter = FilterOperation(column = "is_active", operator = FilterOperator.EQ, value = true))
     }
 
 
     suspend fun bookDestination(id: UUID) {
 
+    }
+
+    @OptIn(SupabaseExperimental::class)
+    fun observeDestinationDetails(id: String): Flow<Destination?> {
+       return supabase
+           .from("locations")
+           .selectAsFlow(
+               Destination::id,
+               filter = FilterOperation(column = "id", operator = FilterOperator.EQ, value = id)
+           ) .map { list ->
+               list.firstOrNull()
+           }
     }
 }

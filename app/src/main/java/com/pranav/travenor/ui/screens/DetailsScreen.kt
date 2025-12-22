@@ -1,14 +1,16 @@
 package com.pranav.travenor.ui.screens
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
@@ -20,38 +22,69 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.pranav.travenor.R
+import coil3.compose.AsyncImage
 import com.pranav.travenor.ui.components.ThemedButton
-import androidx.compose.ui.geometry.Rect
+import com.pranav.travenor.ui.model.DbUiState
+import com.pranav.travenor.ui.model.UiDestinationDetails
+import com.pranav.travenor.ui.viewmodel.DetailsScreenViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun DetailsScreen(modifier: Modifier = Modifier, onBackClick: () -> Unit = {}) {
-    Box(modifier = modifier.fillMaxSize()) {
+fun DetailsScreen(
+    destinationId: String,
+    modifier: Modifier = Modifier,
+    onBackClick: () -> Unit
+) {
+    val viewModel: DetailsScreenViewModel = koinViewModel()
 
-        Image(
-            painter = painterResource(id = R.drawable.home),
+    LaunchedEffect(destinationId) {
+        viewModel.subscribe(destinationId)
+    }
+
+    val uiState by viewModel.uiState
+    val details by viewModel.details.collectAsState()
+
+    Box(modifier = modifier.fillMaxSize()) {
+        when (uiState) {
+            DbUiState.Initializing -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+            is DbUiState.Error -> Text(
+                text = (uiState as DbUiState.Error).message,
+                color = Color.Red,
+                modifier = Modifier.align(Alignment.Center)
+            )
+            DbUiState.Idle -> details?.let {
+                DetailsContent(it, onBackClick)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailsContent(
+    data: UiDestinationDetails,
+    onBackClick: () -> Unit
+) {
+    Box(Modifier.fillMaxSize()) {
+
+        AsyncImage(
+            model = data.imageUrl,
             contentDescription = null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(480.dp),
+            modifier = Modifier.fillMaxWidth().height(480.dp),
             contentScale = ContentScale.Crop
         )
 
         DetailsTopBar(onBackClick)
-        BottomDetailsSheet()
+
+        BottomDetailsSheet(data)
     }
 }
 
@@ -59,87 +92,46 @@ fun DetailsScreen(modifier: Modifier = Modifier, onBackClick: () -> Unit = {}) {
 @Composable
 fun DetailsTopBar(onBackClick: () -> Unit) {
     CenterAlignedTopAppBar(
-        modifier = Modifier.padding(start = 16.dp, top = 24.dp, end = 16.dp),
-        title = {
-            Text("Details", color = Color.White, fontWeight = FontWeight.SemiBold)
-        },
+        title = { Text("Details", color = Color.White, fontWeight = FontWeight.SemiBold) },
         navigationIcon = {
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(Color.Black.copy(alpha = 0.25f), CircleShape)
+                modifier = Modifier.size(40.dp).background(Color.Black.copy(0.25f), CircleShape)
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                    tint = Color.White
-                )
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)
     )
 }
 
 @Composable
-fun BottomDetailsSheet() {
-    val collapsedOffset = 400.dp
-    val expandedOffset = 120.dp
-
-    var expanded by rememberSaveable { mutableStateOf(false) }
+fun BottomDetailsSheet(data: UiDestinationDetails) {
+    val collapsed = 420.dp
+    val expanded = 120.dp
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     val offset by animateDpAsState(
-        targetValue = if (expanded) expandedOffset else collapsedOffset,
-        label = "sheet_offset"
+        if (isExpanded) expanded else collapsed,
+        label = "sheet"
     )
 
     Box(
-        modifier = Modifier
+        Modifier
             .fillMaxWidth()
             .offset(y = offset)
             .drawWithContent {
-                val arcHeight = 10.dp.toPx()
-                val cornerRadius = 26.dp.toPx()
-                val flatWidth = size.width * 0.055f
+                val r = 28.dp.toPx()
+                val a = 10.dp.toPx()
+                val w = size.width
 
                 val path = Path().apply {
-                    moveTo(0f, arcHeight + cornerRadius)
-
-                    arcTo(
-                        rect = Rect(
-                            left = 0f,
-                            top = arcHeight,
-                            right = cornerRadius * 2,
-                            bottom = arcHeight + cornerRadius * 2
-                        ),
-                        startAngleDegrees = 180f,
-                        sweepAngleDegrees = 90f,
-                        forceMoveTo = false
-                    )
-
-                    lineTo(flatWidth, arcHeight)
-
-                    cubicTo(
-                        flatWidth + size.width * 0.1f, -arcHeight,
-                        size.width - flatWidth - size.width * 0.1f, -arcHeight,
-                        size.width - flatWidth, arcHeight
-                    )
-
-                    lineTo(size.width - cornerRadius, arcHeight)
-
-                    arcTo(
-                        rect = Rect(
-                            left = size.width - cornerRadius * 2,
-                            top = arcHeight,
-                            right = size.width,
-                            bottom = arcHeight + cornerRadius * 2
-                        ),
-                        startAngleDegrees = 270f,
-                        sweepAngleDegrees = 90f,
-                        forceMoveTo = false
-                    )
-
-                    lineTo(size.width, size.height)
+                    moveTo(0f, r + a)
+                    arcTo(Rect(0f, a, r * 2, a + r * 2), 180f, 90f, false)
+                    cubicTo(w * .25f, -a, w * .75f, -a, w - r, a)
+                    arcTo(Rect(w - r * 2, a, w, a + r * 2), 270f, 90f, false)
+                    lineTo(w, size.height)
                     lineTo(0f, size.height)
                     close()
                 }
@@ -149,143 +141,115 @@ fun BottomDetailsSheet() {
             }
     ) {
         Column(
-            modifier = Modifier
+            Modifier
                 .fillMaxSize()
-                .background(Color.Transparent)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
                 .pointerInput(Unit) {
-                    detectVerticalDragGestures { _, dragAmount ->
-                        if (dragAmount < -10) expanded = true
-                        else if (dragAmount > 10) expanded = false
+                    detectVerticalDragGestures { _, d ->
+                        if (d < -12) isExpanded = true
+                        if (d > 12) isExpanded = false
                     }
                 }
-                .padding(horizontal = 24.dp)
-                .padding(top = 16.dp, bottom = 120.dp)
         ) {
             Box(
-                modifier = Modifier
+                Modifier
                     .align(Alignment.CenterHorizontally)
-                    .width(40.dp)
-                    .height(4.dp)
+                    .size(width = 40.dp, height = 4.dp)
                     .background(Color.LightGray, RoundedCornerShape(2.dp))
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-            DestinationHeader()
-            Spacer(modifier = Modifier.height(20.dp))
-            DestinationStats()
-            Spacer(modifier = Modifier.height(20.dp))
-            GallerySection()
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(Modifier.height(20.dp))
 
-            AboutDestination(
-                isExpanded = expanded,
-                onToggle = { expanded = !expanded }
-            )
+            HeaderSection(data)
 
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(Modifier.height(20.dp))
 
-            ThemedButton(text = "Book Now", onClick = {})
+            StatsRow(data)
+
+            Spacer(Modifier.height(20.dp))
+
+            GalleryRow(data.galleryImages)
+
+            Spacer(Modifier.height(24.dp))
+
+            AboutSection(data.about, isExpanded) { isExpanded = !isExpanded }
+
+            ThemedButton(modifier = Modifier.padding(top = 8.dp, bottom = 48.dp), "Book Now", onClick = {})
         }
     }
 }
 
 @Composable
-fun DestinationHeader() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+fun HeaderSection(data: UiDestinationDetails) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column {
-            Text("Kolkata Reservoir", fontSize = 26.sp, fontWeight = FontWeight.Bold)
-            Text("Kolkata, India", color = Color.Gray)
+            Text(data.title, fontSize = 26.sp, fontWeight = FontWeight.Bold)
+            Text(data.location, color = Color.Gray)
         }
-        Image(
-            painter = painterResource(id = R.drawable.profile),
-            contentDescription = null,
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape),
-            contentScale = ContentScale.Crop
-        )
+        Box(
+            Modifier.size(44.dp).background(Color(0xFFDDF2E1), CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text("👤")
+        }
     }
 }
 
 @Composable
-fun DestinationStats() {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
+fun StatsRow(data: UiDestinationDetails) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.LocationOn, null, tint = Color.Gray, modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Kolkata", color = Color.Gray)
+            Icon(
+                imageVector = Icons.Default.LocationOn,
+                contentDescription = null,
+                tint = Color.Gray,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(data.location, color = Color.Gray)
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Star, null, tint = Color(0xFFFFD700), modifier = Modifier.size(18.dp))
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("4.7", fontWeight = FontWeight.Bold)
-            Text(" (2498)", color = Color.Gray)
+            Icon(
+                imageVector = Icons.Default.Star,
+                null,
+                tint = Color(0xFFFFC107),
+                modifier = Modifier.size(18.dp))
+            Spacer(Modifier.width(4.dp))
+            Text("${data.rating} (2498)", fontWeight = FontWeight.Medium)
         }
 
         Text(
-            buildAnnotatedString {
-                withStyle(
-                    androidx.compose.ui.text.SpanStyle(
-                        color = colorResource(id = R.color.travenor_blue),
-                        fontWeight = FontWeight.Bold
-                    )
-                ) { append("$59") }
-                append("/Person")
-            }
+            "$${data.price}/Person",
+            color = Color(0xFF4C6FFF),
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
 @Composable
-fun GallerySection() {
+fun GalleryRow(images: List<String>?) {
+    if (images.isNullOrEmpty()) return
 
-    val images = listOf(
-        R.drawable.img_1,
-        R.drawable.img_2,
-        R.drawable.img_3,
-        R.drawable.img_4,
-        R.drawable.img_5
-    )
-
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        contentPadding = PaddingValues(horizontal = 2.dp)
-    ) {
-        items(images.size) { index ->
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp))
-            ) {
-
-                Image(
-                    painter = painterResource(id = images[index]),
+    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        itemsIndexed(images.take(5)) { index, img ->
+            Box {
+                AsyncImage(
+                    model = img,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)),
                     contentScale = ContentScale.Crop
                 )
 
-                if (index == images.lastIndex) {
+                if (index == 4 && images.size > 5) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.55f)),
+                        Modifier
+                            .matchParentSize()
+                            .background(Color.Black.copy(0.45f), RoundedCornerShape(12.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "16+",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
+                        Text("+${images.size - 4}", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -293,39 +257,24 @@ fun GallerySection() {
     }
 }
 
-
-
 @Composable
-fun AboutDestination(isExpanded: Boolean, onToggle: () -> Unit) {
+fun AboutSection(text: String?, expanded: Boolean, onToggle: () -> Unit) {
     Column {
         Text("About Destination", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(Modifier.height(8.dp))
         Text(
-            text =
-                "You will get a complete travel package on the beaches. " +
-                        "Packages include airline tickets, hotels, transportation, " +
-                        "sightseeing, and much more for a wonderful experience.",
+            text ?: "",
             color = Color.Gray,
-            fontSize = 14.sp,
-            lineHeight = 22.sp,
-            maxLines = if (isExpanded) Int.MAX_VALUE else 2,
-            overflow = TextOverflow.Ellipsis
+            maxLines = if (expanded) Int.MAX_VALUE else 3,
+            overflow = TextOverflow.Ellipsis,
+            lineHeight = 22.sp
         )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
+        Spacer(Modifier.height(6.dp))
         Text(
-            text = if (isExpanded) "Read Less" else "Read More",
-            color = Color(0xFFFF7029),
+            if (expanded) "Read Less" else "Read More",
+            color = Color(0xFFFF6F2D),
             fontWeight = FontWeight.Bold,
             modifier = Modifier.clickable { onToggle() }
         )
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DetailsScreenPreview() {
-    DetailsScreen()
 }
