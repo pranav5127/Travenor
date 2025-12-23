@@ -14,6 +14,7 @@ import com.pranav.travenor.BuildConfig
 import com.pranav.travenor.data.datasources.SupabaseDbDataSource
 import com.pranav.travenor.data.repository.DbRepositoryImpl
 import com.pranav.travenor.domain.repository.DbRepository
+import com.pranav.travenor.domain.usecase.RequestBookingUseCase
 import com.pranav.travenor.domain.usecase.ObserveDestinationDetailsUseCase
 import com.pranav.travenor.domain.usecase.ObserveDestinationsUseCase
 import com.pranav.travenor.ui.viewmodel.AuthViewModel
@@ -54,9 +55,11 @@ val appModule = module {
     factory { LogoutUseCase(get()) }
     factory { ObserveDestinationsUseCase(get()) }
     factory { ObserveDestinationDetailsUseCase(get()) }
+    factory { RequestBookingUseCase(get()) }
+
 
     // View model
     viewModel { AuthViewModel(get(), get(), get(), get()) }
     viewModel { HomeScreenViewModel(get()) }
-    viewModel { DetailsScreenViewModel(get()) }
+    viewModel { DetailsScreenViewModel(get(), get()) }
 }

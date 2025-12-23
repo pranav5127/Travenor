@@ -3,6 +3,7 @@ package com.pranav.travenor.data.repository
 import com.pranav.travenor.data.datasources.SupabaseDbDataSource
 import com.pranav.travenor.data.model.Destination
 import com.pranav.travenor.domain.repository.DbRepository
+import com.pranav.travenor.ui.model.BookingState
 import kotlinx.coroutines.flow.Flow
 
 class DbRepositoryImpl(
@@ -18,7 +19,7 @@ class DbRepositoryImpl(
        return dataSource.observeDestinationDetails(id)
     }
 
-    override suspend fun bookDestinations(id: String) {
-        TODO("Not yet implemented")
+    override suspend fun updateBookingState(id: String) {
+        dataSource.updateBookingState(id, BookingState.REQUEST)
     }
 }

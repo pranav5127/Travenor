@@ -20,6 +20,7 @@ import com.pranav.travenor.R
 fun ThemedButton(
     modifier: Modifier = Modifier,
     text: String,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Button(
@@ -27,6 +28,7 @@ fun ThemedButton(
         colors = ButtonDefaults.buttonColors(
             containerColor = colorResource(id = R.color.travenor_blue),
         ),
+        enabled = enabled,
         shape = RoundedCornerShape(16.dp),
         modifier = modifier
             .fillMaxWidth()

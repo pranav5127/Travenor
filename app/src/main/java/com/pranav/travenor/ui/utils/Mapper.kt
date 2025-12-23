@@ -27,6 +27,7 @@ fun DataDestination.toDetailsUi(): UiDestinationDetails {
         imageUrl = imageUrl,
         galleryImages = galleryImages,
         about = about,
-        price = costPerPerson
+        price = costPerPerson,
+        bookingState = bookingState
     )
 }

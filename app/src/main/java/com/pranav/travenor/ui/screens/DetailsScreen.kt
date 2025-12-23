@@ -1,10 +1,22 @@
 package com.pranav.travenor.ui.screens
 
+import android.util.Log
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -15,9 +27,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.pranav.travenor.ui.components.ThemedButton
+import com.pranav.travenor.ui.model.BookingState
 import com.pranav.travenor.ui.model.DbUiState
 import com.pranav.travenor.ui.model.UiDestinationDetails
 import com.pranav.travenor.ui.viewmodel.DetailsScreenViewModel
@@ -55,15 +79,27 @@ fun DetailsScreen(
 
     Box(modifier = modifier.fillMaxSize()) {
         when (uiState) {
-            DbUiState.Initializing -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-            is DbUiState.Error -> Text(
-                text = (uiState as DbUiState.Error).message,
-                color = Color.Red,
-                modifier = Modifier.align(Alignment.Center)
-            )
-            DbUiState.Idle -> details?.let {
-                DetailsContent(it, onBackClick)
-            }
+            DbUiState.Initializing ->
+                CircularProgressIndicator(Modifier.align(Alignment.Center))
+
+            is DbUiState.Error ->
+                Text(
+                    text = (uiState as DbUiState.Error).message,
+                    color = Color.Red,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+
+            DbUiState.Idle ->
+                details?.let {
+                    DetailsContent(
+                        data = it,
+                        onBackClick = onBackClick,
+                        bookNow = {
+                            Log.d("DetailsScreen", "Booking now")
+                            viewModel.bookNow(destinationId)
+                        }
+                    )
+                }
         }
     }
 }
@@ -71,20 +107,22 @@ fun DetailsScreen(
 @Composable
 private fun DetailsContent(
     data: UiDestinationDetails,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    bookNow: () -> Unit
 ) {
     Box(Modifier.fillMaxSize()) {
-
         AsyncImage(
             model = data.imageUrl,
             contentDescription = null,
-            modifier = Modifier.fillMaxWidth().height(480.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(480.dp),
             contentScale = ContentScale.Crop
         )
 
         DetailsTopBar(onBackClick)
 
-        BottomDetailsSheet(data)
+        BottomDetailsSheet(data, bookNow)
     }
 }
 
@@ -96,7 +134,9 @@ fun DetailsTopBar(onBackClick: () -> Unit) {
         navigationIcon = {
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.size(40.dp).background(Color.Black.copy(0.25f), CircleShape)
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(Color.Black.copy(0.25f), CircleShape)
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
             }
@@ -107,7 +147,10 @@ fun DetailsTopBar(onBackClick: () -> Unit) {
 }
 
 @Composable
-fun BottomDetailsSheet(data: UiDestinationDetails) {
+fun BottomDetailsSheet(
+    data: UiDestinationDetails,
+    bookNow: () -> Unit
+) {
     val collapsed = 420.dp
     val expanded = 120.dp
     var isExpanded by rememberSaveable { mutableStateOf(false) }
@@ -116,6 +159,13 @@ fun BottomDetailsSheet(data: UiDestinationDetails) {
         if (isExpanded) expanded else collapsed,
         label = "sheet"
     )
+
+    val (buttonText, enabled) = when (data.bookingState) {
+        BookingState.IDLE -> "Book Now" to true
+        BookingState.REQUEST -> "Requesting..." to false
+        BookingState.ACCEPTED -> "Accepted" to false
+        BookingState.CANCELED -> "Rejected" to false
+    }
 
     Box(
         Modifier
@@ -160,22 +210,24 @@ fun BottomDetailsSheet(data: UiDestinationDetails) {
             )
 
             Spacer(Modifier.height(20.dp))
-
             HeaderSection(data)
-
             Spacer(Modifier.height(20.dp))
-
             StatsRow(data)
-
             Spacer(Modifier.height(20.dp))
-
             GalleryRow(data.galleryImages)
-
             Spacer(Modifier.height(24.dp))
-
             AboutSection(data.about, isExpanded) { isExpanded = !isExpanded }
 
-            ThemedButton(modifier = Modifier.padding(top = 8.dp, bottom = 48.dp), "Book Now", onClick = {})
+            ThemedButton(
+                modifier = Modifier.padding(top = 8.dp, bottom = 48.dp),
+                text = buttonText,
+                enabled = enabled,
+                onClick = {
+                    if (data.bookingState == BookingState.IDLE) {
+                        bookNow()
+                    }
+                }
+            )
         }
     }
 }
@@ -188,7 +240,9 @@ fun HeaderSection(data: UiDestinationDetails) {
             Text(data.location, color = Color.Gray)
         }
         Box(
-            Modifier.size(44.dp).background(Color(0xFFDDF2E1), CircleShape),
+            Modifier
+                .size(44.dp)
+                .background(Color(0xFFDDF2E1), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Text("👤")
@@ -200,22 +254,13 @@ fun HeaderSection(data: UiDestinationDetails) {
 fun StatsRow(data: UiDestinationDetails) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.LocationOn,
-                contentDescription = null,
-                tint = Color.Gray,
-                modifier = Modifier.size(18.dp)
-            )
+            Icon(Icons.Default.LocationOn, null, tint = Color.Gray, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(4.dp))
             Text(data.location, color = Color.Gray)
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(
-                imageVector = Icons.Default.Star,
-                null,
-                tint = Color(0xFFFFC107),
-                modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(4.dp))
             Text("${data.rating} (2498)", fontWeight = FontWeight.Medium)
         }
@@ -238,7 +283,9 @@ fun GalleryRow(images: List<String>?) {
                 AsyncImage(
                     model = img,
                     contentDescription = null,
-                    modifier = Modifier.size(64.dp).clip(RoundedCornerShape(12.dp)),
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(12.dp)),
                     contentScale = ContentScale.Crop
                 )
 

@@ -8,5 +8,6 @@ data class UiDestinationDetails(
     val imageUrl: String?,
     val galleryImages: List<String>?,
     val about: String?,
-    val price: Int?
+    val price: Int?,
+    val bookingState: BookingState
 )
