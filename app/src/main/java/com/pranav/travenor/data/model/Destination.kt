@@ -1,5 +1,6 @@
 package com.pranav.travenor.data.model
 
+import com.pranav.travenor.ui.model.BookingState
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -31,5 +32,8 @@ data class Destination(
     @SerialName("cost_per_person")
     val costPerPerson: Int? = null,
 
-    val about: String? = null
+    val about: String? = null,
+
+    @SerialName("booking_state")
+    val bookingState: BookingState = BookingState.IDLE
 )
